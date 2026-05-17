@@ -1,0 +1,431 @@
+
+<style>
+  body {
+    background: #111;
+  }
+
+  .character-messages-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 1rem auto 0 auto;
+    border-radius: 0.5rem;
+    background: #ece5dd;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 700px;
+    max-width: 400px;
+
+    .whatsapp-header {
+        display: flex;
+        flex-direction: row;
+        height: 2.5rem;
+        padding: 0.1rem;
+        border-bottom: 1px solid rgba(0,0,0,0.25);
+
+      img.icon {
+        display: block;
+        vertical-align: middle;
+        height: 1.5rem;
+        margin: 0.5rem;
+        flex-grow: 0;
+      }
+
+      .character-info {
+        flex-grow: 1;
+
+        .character-name {
+          font-weight: bold;
+        }
+
+        .character-last-seen {
+          font-size: 0.8rem;
+          opacity: 0.8;
+        }
+      }
+
+      .character-avatar {
+        height: 2rem;
+        line-height: 2rem;
+        width: 2rem;
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+        margin-left: 0;
+        margin-right: 0.5rem;
+        background: deepskyblue;
+        border-radius: 50%;
+        color: white;
+        text-align: center;
+      }
+    }
+  }
+
+  .whatsapp-chat {
+    padding: 0.5rem;
+    flex-grow: 1;
+    line-height: 1.4rem;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+  }
+
+  .whatsapp-chat-inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-message {
+    margin: 0;
+    display: flex;
+    height: 0;
+    animation: growInSlide 0.5s ease-out forwards;
+    overflow: hidden;
+    transform-origin: top;
+  }
+
+  .chat-message-hidden-anchor {
+    scroll-snap-align: end;
+  }
+
+  .chat-message.left {
+    justify-content: flex-start;
+  }
+
+  .chat-message.right {
+    justify-content: flex-end;
+  }
+
+  .bubble {
+    max-width: 85%;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.5rem;
+    word-wrap: break-word;
+  }
+
+  .bubble.left {
+    background: white;
+    color: black;
+  }
+
+  .bubble.right {
+    background: #dcf8c6;
+    color: black;
+  }
+
+  .timestamp {
+    font-size: 0.7rem;
+    color: #999;
+    margin: 0 0 0 0.5rem;
+    align-self: center;
+    position: relative;
+    top: 0.4rem;
+    float: right;
+  }
+
+  @keyframes growInSlide {
+    from {
+      opacity: 0;
+      height: 0;
+      margin: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      height: fit-content;
+      margin: 0.25rem 0;
+      transform: translateY(0);
+    }
+  }
+
+  .input-container {
+    background: #ece5dd;
+    flex-basis: 3.5rem;
+    flex-grow: 0;
+    padding: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.25);
+  }
+
+  .input-box {
+    background: white;
+    border: 1px solid gray;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 40px;
+    color: #333;
+  }
+
+  .text-attempt {
+    width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  @keyframes typeAndDelete {
+    0% {
+      width: 0;
+    }
+    75% {
+      width: 100%;
+    }
+    100% {
+      width: 0;
+    }
+  }
+
+  @keyframes typeAndSend {
+    0% {
+      width: 0;
+    }
+    75% {
+      width: 100%;
+    }
+    98% {
+      width: 100%;
+    }
+    99% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      width:0;
+    }
+  }
+
+  /* Animation mode controls */
+  input[type="radio"] {
+    display: none;
+  }
+
+  .animation-controls {
+    max-width: 400px;
+    margin: 10px auto 10px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .animation-controls label,
+  .animation-controls button {
+    cursor: pointer;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #f0f0f0;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .animation-controls button {
+    margin-left: auto;
+    background: #fff;
+  }
+
+  .animation-controls button:active {
+    background: #e0e0e0;
+  }
+
+  input[type="radio"]:checked + label {
+    background: #dcf8c6;
+    border-color: #999;
+    font-weight: bold;
+  }
+
+  /* let the reader override animation */
+  #anim-none:checked ~ .whatsapp-chat {
+    animation: none !important;
+    height: fit-content !important;
+    opacity: 1 !important;
+  }
+
+/* generated animation delays */  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-0 { animation-delay: 0.6000000000000001s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-0 { animation-delay: 1.6s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-0 { animation-delay: 0.6000000000000001s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-0 { animation-delay: 1.6s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-1 { animation-delay: 3s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-1 { animation-delay: 8s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-1 { animation-delay: 3s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-1 { animation-delay: 8s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-2 { animation-delay: 5.2s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-2 { animation-delay: 13.866666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-2 { animation-delay: 5.2s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-2 { animation-delay: 13.866666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-3 { animation-delay: 7.2s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-3 { animation-delay: 19.2s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-3 { animation-delay: 7.2s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-3 { animation-delay: 19.2s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-4 { animation-delay: 8.799999999999999s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-4 { animation-delay: 23.46666666666666s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-4 { animation-delay: 8.799999999999999s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-4 { animation-delay: 23.46666666666666s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-5 { animation-delay: 12.799999999999999s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-5 { animation-delay: 34.133333333333326s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-5 { animation-delay: 12.799999999999999s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-5 { animation-delay: 34.133333333333326s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-6 { animation-delay: 14.499999999999998s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-6 { animation-delay: 38.66666666666666s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-6 { animation-delay: 14.499999999999998s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-6 { animation-delay: 38.66666666666666s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-7 { animation-delay: 15.999999999999998s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-7 { animation-delay: 42.66666666666666s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-7 { animation-delay: 15.999999999999998s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-7 { animation-delay: 42.66666666666666s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-8 { animation-delay: 17.8s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-8 { animation-delay: 47.46666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-8 { animation-delay: 17.8s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-8 { animation-delay: 47.46666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-9 { animation-delay: 19.8s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-9 { animation-delay: 52.8s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-9 { animation-delay: 19.8s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-9 { animation-delay: 52.8s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-10 { animation-delay: 22s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-10 { animation-delay: 58.666666666666664s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-10 { animation-delay: 22s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-10 { animation-delay: 58.666666666666664s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-11 { animation-delay: 24.5s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-11 { animation-delay: 65.33333333333333s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-11 { animation-delay: 24.5s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-11 { animation-delay: 65.33333333333333s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-12 { animation-delay: 27.1s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-12 { animation-delay: 72.26666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-12 { animation-delay: 27.1s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-12 { animation-delay: 72.26666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-13 { animation-delay: 28.8s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-13 { animation-delay: 76.8s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-13 { animation-delay: 28.8s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-13 { animation-delay: 76.8s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-14 { animation-delay: 30.900000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-14 { animation-delay: 82.4s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-14 { animation-delay: 30.900000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-14 { animation-delay: 82.4s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-15 { animation-delay: 33.1s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-15 { animation-delay: 88.26666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-15 { animation-delay: 33.1s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-15 { animation-delay: 88.26666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-16 { animation-delay: 35.1s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-16 { animation-delay: 93.6s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-16 { animation-delay: 35.1s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-16 { animation-delay: 93.6s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-17 { animation-delay: 37.300000000000004s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-17 { animation-delay: 99.46666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-17 { animation-delay: 37.300000000000004s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-17 { animation-delay: 99.46666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-18 { animation-delay: 39.00000000000001s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-18 { animation-delay: 104.00000000000001s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-18 { animation-delay: 39.00000000000001s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-18 { animation-delay: 104.00000000000001s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-19 { animation-delay: 45.60000000000001s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-19 { animation-delay: 121.60000000000002s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-19 { animation-delay: 45.60000000000001s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-19 { animation-delay: 121.60000000000002s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-20 { animation-delay: 47.20000000000001s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-20 { animation-delay: 125.86666666666669s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-20 { animation-delay: 47.20000000000001s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-20 { animation-delay: 125.86666666666669s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-21 { animation-delay: 53.80000000000001s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-21 { animation-delay: 143.4666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-21 { animation-delay: 53.80000000000001s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-21 { animation-delay: 143.4666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-22 { animation-delay: 65.20000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-22 { animation-delay: 173.8666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-22 { animation-delay: 65.20000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-22 { animation-delay: 173.8666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-23 { animation-delay: 66.60000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-23 { animation-delay: 177.60000000000005s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-23 { animation-delay: 66.60000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-23 { animation-delay: 177.60000000000005s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-24 { animation-delay: 72.90000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-24 { animation-delay: 194.40000000000003s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-24 { animation-delay: 72.90000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-24 { animation-delay: 194.40000000000003s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-25 { animation-delay: 74.20000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-25 { animation-delay: 197.8666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-25 { animation-delay: 74.20000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-25 { animation-delay: 197.8666666666667s; }  #anim-normal:checked ~ .character-messages-container .whatsapp-chat .delay-26 { animation-delay: 79.60000000000002s; }  #anim-slow:checked ~ .character-messages-container .whatsapp-chat .delay-26 { animation-delay: 212.2666666666667s; }  #anim-normal:checked ~ .character-messages-container .input-container .delay-26 { animation-delay: 79.60000000000002s; }  #anim-slow:checked ~ .character-messages-container .input-container .delay-26 { animation-delay: 212.2666666666667s; }
+</style>
+
+<!-- Animation Timeline
+  [0.60s - 1.10s] Message 1: POP IN "The energy on that opener! God."
+  [3.00s - 3.50s] Message 2: POP IN "Rusted Wheel is so melancholy it's beautiful. Where has this been all my life"
+  [5.20s - 5.70s] Message 3: POP IN "Wait, how many instruments does Perfuma play?!? Is that a fucking yatga?!?"
+  [7.20s - 7.70s] Message 4: POP IN ""A motorcade of meant-to-bes" god that's such a good line"
+  [8.80s - 9.30s] Message 5: POP IN "(sorry I know I keep texting)"
+  [12.80s - 13.30s] Message 6: POP IN "Scorpia is incredible btw. everyone is. i feel like i don't know enough about the drums to understand what Entrapta's doing but i know it's amazing as well, you know?"
+  [14.50s - 15.00s] Message 7: POP IN "Oh, Catch and Release gets SEXY huh?"
+  [16.00s - 16.50s] Message 8: POP IN "(...definitely logging that for later)"
+  [17.80s - 18.30s] Message 9: POP IN "Okay. It Doesn't Matter Why. Got a question."
+  [19.80s - 20.30s] Message 10: POP IN "I uh... already listened to most of the albums beforehand"
+  [22.00s - 22.50s] Message 11: POP IN "I had a theory I wanted to test, that's why I watched"
+  [24.50s - 25.00s] Message 12: POP IN "I think you put a lot more of yourself into the music than people realise?"
+  [27.10s - 27.60s] Message 13: POP IN "When It Doesn't Matter Why came on I started imagining you were singing it to me"
+  [28.80s - 29.30s] Message 14: POP IN "And I realised I was feeling jealous"
+  [30.90s - 31.40s] Message 15: POP IN "Which felt like kind of the whole point of the song"
+  [33.10s - 33.60s] Message 16: POP IN "Like you wrote it for someone, to make them feel that way"
+  [35.10s - 35.60s] Message 17: POP IN "You can tell me to shut up if you want"
+  [37.30s - 37.80s] Message 18: POP IN "But I realised I kind of had the opportunity to just... ask"
+  [39.00s - 43.00s] Message 19.1: TYPE & SEND "isn't that like thirty bucks on pay-per-view"
+  [43.50s - 44.00s] Message 19: POP IN (final message)
+  [45.60s - 46.10s] Message 20: POP IN "Worth it to see how cocky you look when the whole audience is singing along 😉"
+  [47.20s - 51.20s] Message 21.1: TYPE & SEND "dork. about it doesn't matter why"
+  [51.70s - 52.20s] Message 21: POP IN (final message)
+  [53.80s - 56.80s] Message 22.1: TYPE & DELETE "you're not wrong"
+  [56.80s - 59.80s] Message 22.2: TYPE & DELETE "interesting observation"
+  [59.80s - 63.80s] Message 22.3: TYPE & SEND "i said nothing, i did nothing, i wasn't even there, you'll never prove it in court"
+  [64.30s - 64.80s] Message 22: POP IN (final message)
+  [65.20s - 65.70s] Message 23: POP IN "😂😂😂 I adore you."
+  [66.60s - 70.60s] Message 24.1: TYPE & SEND "making it weird, greseth"
+  [71.10s - 71.60s] Message 24: POP IN (final message)
+  [72.90s - 73.40s] Message 25: POP IN "Thought we already made it weird, Weaver. Down by the reservoir. 💦 😉"
+  [74.20s - 78.20s] Message 26.1: TYPE & SEND "good night, hornball."
+  [78.70s - 79.20s] Message 26: POP IN (final message)
+  [79.60s - 80.10s] Message 27: POP IN "Good night, Catra 💛"
+-->
+
+
+<div class="ff-anim-container">
+  <input type="radio" id="anim-normal" name="animation" checked style="display: none;">
+  <input type="radio" id="anim-slow" name="animation" style="display: none;">
+  <input type="radio" id="anim-none" name="animation" style="display: none;">
+  <div class="animation-controls">
+    <label for="anim-normal">Normal</label>
+    <label for="anim-slow">Slow</label>
+    <label for="anim-none">No Animation</label>
+  </div>
+  <div class="character-messages-container">
+    <div class="whatsapp-header">
+      <img class="icon" src="arrow-left.png" height="20" alt="Back" />
+      <div class="character-avatar">A</div>
+      <div class="character-info">
+        <div class="character-name">Adora Greseth</div>
+        <div class="character-last-seen">last seen today at 11:08 PM</div>
+      </div>
+      <img class="icon" src="video.png" height="20" alt="Back" />
+      <img class="icon" src="phone.png" height="20" alt="Back" />
+      <img class="icon" src="more-information.png" height="20" alt="Back" />
+    </div>
+    <div class="whatsapp-chat">
+      <div class="whatsapp-chat-inner">
+        
+      <div class="chat-message left delay-0">
+        <div class="bubble left">The energy on that opener! God.<span class="timestamp">9:05 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-1">
+        <div class="bubble left">Rusted Wheel is so melancholy it's beautiful. Where has this been all my life<span class="timestamp">9:07 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-2">
+        <div class="bubble left">Wait, how many instruments does Perfuma play?!? Is that a fucking yatga?!?<span class="timestamp">9:11 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-3">
+        <div class="bubble left">"A motorcade of meant-to-bes" god that's such a good line<span class="timestamp">9:13 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-4">
+        <div class="bubble left">(sorry I know I keep texting)<span class="timestamp">9:16 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-5">
+        <div class="bubble left">Scorpia is incredible btw. everyone is. i feel like i don't know enough about the drums to understand what Entrapta's doing but i know it's amazing as well, you know?<span class="timestamp">9:19 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-6">
+        <div class="bubble left">Oh, Catch and Release gets SEXY huh?<span class="timestamp">9:27 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-7">
+        <div class="bubble left">(...definitely logging that for later)<span class="timestamp">9:28 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-8">
+        <div class="bubble left">Okay. It Doesn't Matter Why. Got a question.<span class="timestamp">10:04 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-9">
+        <div class="bubble left">I uh... already listened to most of the albums beforehand<span class="timestamp">10:05 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-10">
+        <div class="bubble left">I had a theory I wanted to test, that's why I watched<span class="timestamp">10:06 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-11">
+        <div class="bubble left">I think you put a lot more of yourself into the music than people realise?<span class="timestamp">10:07 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-12">
+        <div class="bubble left">When It Doesn't Matter Why came on I started imagining you were singing it to me<span class="timestamp">10:09 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-13">
+        <div class="bubble left">And I realised I was feeling jealous<span class="timestamp">10:10 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-14">
+        <div class="bubble left">Which felt like kind of the whole point of the song<span class="timestamp">10:11 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-15">
+        <div class="bubble left">Like you wrote it for someone, to make them feel that way<span class="timestamp">10:12 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-16">
+        <div class="bubble left">You can tell me to shut up if you want<span class="timestamp">10:14 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-17">
+        <div class="bubble left">But I realised I kind of had the opportunity to just... ask<span class="timestamp">10:15 PM</span></div>
+      </div>
+
+      <div class="chat-message right" style="animation-delay: 43.50000000000001s;">
+        <div class="bubble right">isn't that like thirty bucks on pay-per-view<span class="timestamp">11:02 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-19">
+        <div class="bubble left">Worth it to see how cocky you look when the whole audience is singing along 😉<span class="timestamp">11:02 PM</span></div>
+      </div>
+
+      <div class="chat-message right" style="animation-delay: 51.70000000000001s;">
+        <div class="bubble right">dork. about it doesn't matter why<span class="timestamp">11:03 PM</span></div>
+      </div>
+
+      <div class="chat-message right" style="animation-delay: 64.30000000000001s;">
+        <div class="bubble right">i said nothing, i did nothing, i wasn't even there, you'll never prove it in court<span class="timestamp">11:03 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-22">
+        <div class="bubble left">😂😂😂 I adore you.<span class="timestamp">11:06 PM</span></div>
+      </div>
+
+      <div class="chat-message right" style="animation-delay: 71.10000000000002s;">
+        <div class="bubble right">making it weird, greseth<span class="timestamp">11:07 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-24">
+        <div class="bubble left">Thought we already made it weird, Weaver. Down by the reservoir. 💦 😉<span class="timestamp">11:08 PM</span></div>
+      </div>
+
+      <div class="chat-message right" style="animation-delay: 78.70000000000002s;">
+        <div class="bubble right">good night, hornball.<span class="timestamp">11:09 PM</span></div>
+      </div>
+
+      <div class="chat-message left delay-26">
+        <div class="bubble left">Good night, Catra 💛<span class="timestamp">11:08 PM</span></div>
+      </div>  
+        <div class="chat-message-hidden-anchor"></div>
+      </div>
+    </div>
+    <div class="input-container">
+      <div class="input-box">
+                <div class="text-attempt attempt-0" style="animation-name: typeAndSend; animation-duration: 4s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 39.00000000000001s;">isn't that like thirty bucks on pay-per-view</div>
+        <div class="text-attempt attempt-1" style="animation-name: typeAndSend; animation-duration: 4s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 47.20000000000001s;">dork. about it doesn't matter why</div>
+        <div class="text-attempt attempt-2" style="animation-name: typeAndDelete; animation-duration: 3s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 53.80000000000001s;">you're not wrong</div>
+        <div class="text-attempt attempt-3" style="animation-name: typeAndDelete; animation-duration: 3s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 56.80000000000001s;">interesting observation</div>
+        <div class="text-attempt attempt-4" style="animation-name: typeAndSend; animation-duration: 4s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 59.80000000000001s;">i said nothing, i did nothing, i wasn't even there, you'll never prove it in court</div>
+        <div class="text-attempt attempt-5" style="animation-name: typeAndSend; animation-duration: 4s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 66.60000000000002s;">making it weird, greseth</div>
+        <div class="text-attempt attempt-6" style="animation-name: typeAndSend; animation-duration: 4s; animation-timing-function: ease-in-out; animation-fill-mode: forwards; animation-delay: 74.20000000000002s;">good night, hornball.</div>
+      </div>
+    </div>
+  </div>
+  <a href="https://www.flaticon.com/free-icons/video-call" title="video call icons">Video call icons created by SeyfDesigner - Flaticon</a>
+</div>
